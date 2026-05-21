@@ -36,7 +36,7 @@ html.teams-stealth-active #primary-inner > :not(#player):not(#player-theater-con
   display: none !important;
 }
 
-/* Reset layout/backgrounds for ancestors of movie_player to allow z-index/fixed positioning to work */
+/* Reset layout/backgrounds for ancestors to allow z-index/fixed positioning to work */
 html.teams-stealth-active ytd-app,
 html.teams-stealth-active #content,
 html.teams-stealth-active ytd-page-manager,
@@ -45,10 +45,12 @@ html.teams-stealth-active #columns,
 html.teams-stealth-active #primary,
 html.teams-stealth-active #primary-inner,
 html.teams-stealth-active #player,
+html.teams-stealth-active #player-theater-container,
 html.teams-stealth-active #player-container-outer,
 html.teams-stealth-active #player-container-inner,
 html.teams-stealth-active #player-container,
-html.teams-stealth-active #ytd-player {
+html.teams-stealth-active #ytd-player,
+html.teams-stealth-active #movie_player {
   transform: none !important;
   filter: none !important;
   perspective: none !important;
@@ -59,18 +61,45 @@ html.teams-stealth-active #ytd-player {
   box-shadow: none !important;
   margin: 0 !important;
   padding: 0 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Override YouTube Player positioning and size to fill the stage placeholder precisely */
-html.teams-stealth-active #movie_player {
+html.teams-stealth-active .teams-stealth-positioned-player {
   position: fixed !important;
   z-index: 1000 !important; /* Place video between background and Teams UI overlay */
   pointer-events: auto !important;
-  border-radius: 4px !important;
+  border-radius: 8px !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background-color: #000000 !important; /* Solid black background for player letterboxing */
+}
+
+/* Ensure the video element inside fills container */
+html.teams-stealth-active .teams-stealth-positioned-player video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure movie player itself is visible and fills container */
+html.teams-stealth-active .teams-stealth-positioned-player #movie_player {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Ensure the player doesn't render dark overlays that break the illusion */
+html.teams-stealth-active .teams-stealth-positioned-player.ytp-fullscreen,
 html.teams-stealth-active #movie_player.ytp-fullscreen {
   z-index: 2147483647 !important; /* Restore normal fullscreen mode if clicked */
 }

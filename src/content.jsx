@@ -69,6 +69,8 @@ function MeetingRoom() {
 
   const placeholderRef = useRef(null);
   const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+  const [isWatchPage, setIsWatchPage] = useState(window.location.pathname.startsWith('/watch'));
+  const isStealthActive = enabled && isWatchPage;
 
   const AVATAR_COLORS = [
     { bg: '#f5d6c6', text: '#5a3d31' }, // Peach
@@ -125,20 +127,47 @@ function MeetingRoom() {
     }
   };
 
+  // SPA navigation listener & URL polling
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const watch = window.location.pathname.startsWith('/watch');
+      if (watch !== isWatchPage) {
+        setIsWatchPage(watch);
+      }
+    };
+
+    window.addEventListener('yt-navigate-finish', handleUrlChange);
+    window.addEventListener('popstate', handleUrlChange);
+    const interval = setInterval(handleUrlChange, 500);
+
+    return () => {
+      window.removeEventListener('yt-navigate-finish', handleUrlChange);
+      window.removeEventListener('popstate', handleUrlChange);
+      clearInterval(interval);
+    };
+  }, [isWatchPage]);
+
+  // Synchronize CSS class and restore style on disable/leave
+  useEffect(() => {
+    if (isStealthActive) {
+      document.documentElement.classList.add('teams-stealth-active');
+    } else {
+      document.documentElement.classList.remove('teams-stealth-active');
+      const ytPlayer = document.getElementById('player-container') || 
+                       document.getElementById('ytd-player') || 
+                       document.getElementById('movie_player');
+      if (ytPlayer) {
+        ytPlayer.removeAttribute('style');
+        ytPlayer.classList.remove('teams-stealth-positioned-player');
+      }
+    }
+  }, [isStealthActive]);
+
   // Load configuration and listen to changes
   useEffect(() => {
     const loadSettings = (data) => {
       if (data.enabled !== undefined) {
         setEnabled(data.enabled);
-        if (data.enabled) {
-          document.documentElement.classList.add('teams-stealth-active');
-        } else {
-          document.documentElement.classList.remove('teams-stealth-active');
-          const ytPlayer = document.getElementById('movie_player');
-          if (ytPlayer) {
-            ytPlayer.removeAttribute('style');
-          }
-        }
       }
       if (data.meetingTitle !== undefined) {
         setMeetingTitle(data.meetingTitle);
@@ -192,16 +221,16 @@ function MeetingRoom() {
 
   // Update meeting duration timer
   useEffect(() => {
-    if (!enabled) return;
+    if (!isStealthActive) return;
     const interval = setInterval(() => {
       setMeetingDuration(prev => prev + 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [enabled]);
+  }, [isStealthActive]);
 
   // Mask page title and favicon periodically
   useEffect(() => {
-    if (!enabled) return;
+    if (!isStealthActive) return;
 
     const maskTab = () => {
       if (document.title !== meetingTitle) {
@@ -221,23 +250,29 @@ function MeetingRoom() {
     maskTab();
     const interval = setInterval(maskTab, 500);
     return () => clearInterval(interval);
-  }, [enabled, meetingTitle]);
+  }, [isStealthActive, meetingTitle]);
 
   // Handle Video Element Overlay Anchoring
   useEffect(() => {
-    if (!enabled) return;
-
-    const ytPlayer = document.getElementById('movie_player');
-    if (!ytPlayer) return;
+    if (!isStealthActive) return;
 
     const updatePlayerPosition = () => {
       if (!placeholderRef.current) return;
       const rect = placeholderRef.current.getBoundingClientRect();
 
-      ytPlayer.style.setProperty('top', `${rect.top}px`, 'important');
-      ytPlayer.style.setProperty('left', `${rect.left}px`, 'important');
-      ytPlayer.style.setProperty('width', `${rect.width}px`, 'important');
-      ytPlayer.style.setProperty('height', `${rect.height}px`, 'important');
+      const activePlayer = document.getElementById('player-container') || 
+                           document.getElementById('ytd-player') || 
+                           document.getElementById('movie_player');
+      if (!activePlayer) return;
+
+      if (!activePlayer.classList.contains('teams-stealth-positioned-player')) {
+        activePlayer.classList.add('teams-stealth-positioned-player');
+      }
+
+      activePlayer.style.setProperty('top', `${rect.top}px`, 'important');
+      activePlayer.style.setProperty('left', `${rect.left}px`, 'important');
+      activePlayer.style.setProperty('width', `${rect.width}px`, 'important');
+      activePlayer.style.setProperty('height', `${rect.height}px`, 'important');
     };
 
     const resizeObserver = new ResizeObserver(() => {
@@ -258,38 +293,77 @@ function MeetingRoom() {
       resizeObserver.disconnect();
       window.removeEventListener('resize', updatePlayerPosition);
       cancelAnimationFrame(rafId);
+
+      const activePlayer = document.getElementById('player-container') || 
+                           document.getElementById('ytd-player') || 
+                           document.getElementById('movie_player');
+      if (activePlayer) {
+        activePlayer.removeAttribute('style');
+        activePlayer.classList.remove('teams-stealth-positioned-player');
+      }
     };
-  }, [enabled, viewMode, activeSidebar]);
+  }, [isStealthActive, viewMode, activeSidebar]);
 
   // Handle video play/pause and mute via click pass-through or Teams buttons
   useEffect(() => {
-    const video = document.querySelector('video');
-    if (!video) return;
+    if (!isStealthActive) return;
 
-    setIsCameraOn(!video.paused);
-    setIsMuted(video.muted);
+    let currentVideo = null;
 
     const handlePlayPause = () => {
-      setIsCameraOn(!video.paused);
+      if (currentVideo) {
+        setIsCameraOn(!currentVideo.paused);
+      }
     };
     const handleVolumeChange = () => {
-      setIsMuted(video.muted || video.volume === 0);
+      if (currentVideo) {
+        setIsMuted(currentVideo.muted || currentVideo.volume === 0);
+      }
     };
 
-    video.addEventListener('play', handlePlayPause);
-    video.addEventListener('pause', handlePlayPause);
-    video.addEventListener('volumechange', handleVolumeChange);
+    const bindVideo = (videoEl) => {
+      if (!videoEl || currentVideo === videoEl) return;
+      
+      if (currentVideo) {
+        currentVideo.removeEventListener('play', handlePlayPause);
+        currentVideo.removeEventListener('pause', handlePlayPause);
+        currentVideo.removeEventListener('volumechange', handleVolumeChange);
+      }
+
+      currentVideo = videoEl;
+      setIsCameraOn(!videoEl.paused);
+      setIsMuted(videoEl.muted || videoEl.volume === 0);
+
+      videoEl.addEventListener('play', handlePlayPause);
+      videoEl.addEventListener('pause', handlePlayPause);
+      videoEl.addEventListener('volumechange', handleVolumeChange);
+    };
+
+    const interval = setInterval(() => {
+      const video = document.querySelector('video');
+      if (video) {
+        bindVideo(video);
+      } else {
+        if (currentVideo) {
+          currentVideo = null;
+          setIsCameraOn(false);
+        }
+      }
+    }, 500);
 
     return () => {
-      video.removeEventListener('play', handlePlayPause);
-      video.removeEventListener('pause', handlePlayPause);
-      video.removeEventListener('volumechange', handleVolumeChange);
+      clearInterval(interval);
+      if (currentVideo) {
+        currentVideo.removeEventListener('play', handlePlayPause);
+        currentVideo.removeEventListener('pause', handlePlayPause);
+        currentVideo.removeEventListener('volumechange', handleVolumeChange);
+      }
     };
-  }, [enabled]);
+  }, [isStealthActive]);
 
   // Random Colleague Chat & Speaking simulation
   useEffect(() => {
-    if (!enabled) return;
+    if (!isStealthActive) return;
 
     const interval = setInterval(() => {
       setSpeakerStates({ [colleagueName]: true });
@@ -328,11 +402,11 @@ function MeetingRoom() {
     }, 12000);
 
     return () => clearInterval(interval);
-  }, [enabled, colleagueName, colleagueInitials]);
+  }, [isStealthActive, colleagueName, colleagueInitials]);
 
   // Scrape YouTube comments to inject as meeting chat
   useEffect(() => {
-    if (!enabled) return;
+    if (!isStealthActive) return;
 
     const scrapeComments = () => {
       const commentNodes = document.querySelectorAll('ytd-comment-thread-renderer');
@@ -372,7 +446,7 @@ function MeetingRoom() {
 
     const interval = setInterval(scrapeComments, 20000);
     return () => clearInterval(interval);
-  }, [enabled, colleagueName, colleagueInitials]);
+  }, [isStealthActive, colleagueName, colleagueInitials]);
 
   const toggleMute = () => {
     const video = document.querySelector('video');
@@ -445,7 +519,7 @@ function MeetingRoom() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!enabled) return null;
+  if (!isStealthActive) return null;
 
   return (
     <div className="teams-wrapper h-full w-full bg-transparent flex flex-col text-sm leading-normal">
@@ -488,7 +562,7 @@ function MeetingRoom() {
           >
             <div className="relative flex items-center justify-center">
               <Users className="w-7 h-7" />
-              <span className="absolute -top-[5px] -right-[6px] bg-[#242424] text-[10px] font-bold text-white w-[18px] h-[18px] flex items-center justify-center rounded-full border border-[#a1a1a1] shadow-md select-none">{2 + extraParticipants.length}</span>
+              <span className="absolute -top-[2px] -right-[2px] bg-[#202023] text-[10px] font-bold text-white w-[18px] h-[18px] flex items-center justify-center rounded-full border border-[#adadad] shadow-md select-none">{2 + extraParticipants.length}</span>
             </div>
             <span className="text-sm font-semibold mt-1">People</span>
           </button>
@@ -598,7 +672,7 @@ function MeetingRoom() {
                   <div
                     ref={placeholderRef}
                     id="teams-video-placeholder"
-                    className={`w-full h-full bg-black transition-opacity duration-300 ${isCameraOn ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    className={`w-full h-full bg-transparent transition-opacity duration-300 ${isCameraOn ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                   />
 
                   {/* Avatar shown when camera is off - SWAPPED to User NK */}
@@ -706,7 +780,7 @@ function MeetingRoom() {
                         <div
                           ref={placeholderRef}
                           id="teams-video-placeholder"
-                          className={`absolute inset-0 bg-black transition-opacity duration-300 ${isCameraOn ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                          className={`absolute inset-0 bg-transparent transition-opacity duration-300 ${isCameraOn ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                         />
                         {!isCameraOn && (
                           <div 
