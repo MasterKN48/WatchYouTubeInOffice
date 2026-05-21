@@ -39,6 +39,7 @@
     {
       "resources": [
         "content.css",
+        "favicon.svg",
         "assets/*"
       ],
       "matches": [

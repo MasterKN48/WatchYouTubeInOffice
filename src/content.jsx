@@ -39,7 +39,7 @@ const checkStealthInitialState = () => {
 };
 checkStealthInitialState();
 
-const TEAMS_FAVICON = 'https://statics.teams.cdn.office.net/evergreen-assets/apps/teams_v2_16x16.ico';
+const TEAMS_FAVICON = chrome.runtime && chrome.runtime.getURL ? chrome.runtime.getURL('favicon.svg') : 'https://statics.teams.cdn.office.net/evergreen-assets/apps/teams_v2_16x16.ico';
 
 function MeetingRoom() {
   const [enabled, setEnabled] = useState(true);
@@ -236,14 +236,18 @@ function MeetingRoom() {
       if (document.title !== meetingTitle) {
         document.title = meetingTitle;
       }
-      let icon = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel="shortcut icon"]');
-      if (!icon) {
-        icon = document.createElement('link');
+      const icons = document.querySelectorAll('link[rel*="icon"]');
+      if (icons.length === 0) {
+        const icon = document.createElement('link');
         icon.rel = 'icon';
-        document.head.appendChild(icon);
-      }
-      if (icon.href !== TEAMS_FAVICON) {
         icon.href = TEAMS_FAVICON;
+        document.head.appendChild(icon);
+      } else {
+        icons.forEach(icon => {
+          if (icon.href !== TEAMS_FAVICON) {
+            icon.href = TEAMS_FAVICON;
+          }
+        });
       }
     };
 
@@ -260,9 +264,9 @@ function MeetingRoom() {
       if (!placeholderRef.current) return;
       const rect = placeholderRef.current.getBoundingClientRect();
 
-      const activePlayer = document.getElementById('player-container') || 
+      const activePlayer = document.getElementById('movie_player') || 
                            document.getElementById('ytd-player') || 
-                           document.getElementById('movie_player');
+                           document.getElementById('player-container');
       if (!activePlayer) return;
 
       if (!activePlayer.classList.contains('teams-stealth-positioned-player')) {
@@ -659,12 +663,12 @@ function MeetingRoom() {
       </div>
 
       {/* MAIN MEETING ROOM BODY */}
-      <div className="flex-1 flex flex-row min-h-0 overflow-hidden bg-[#111014]">
+      <div className="flex-1 flex flex-row min-h-0 overflow-hidden bg-transparent">
         {/* CALL WORKSPACE BODY */}
         <div className="flex-1 flex min-h-0 relative">
           {/* CALL STAGE */}
-          <div className="flex-1 flex flex-col p-4 relative min-w-0 bg-[#111014]">
-            <div className="flex-1 bg-[#1b1a1f] rounded-xl flex items-center justify-center relative overflow-hidden shadow-inner border border-[#2f2f35]">
+          <div className="flex-1 flex flex-col p-4 relative min-w-0 bg-transparent">
+            <div className={`flex-1 ${isCameraOn ? 'bg-transparent' : 'bg-[#1b1a1f]'} rounded-xl flex items-center justify-center relative overflow-hidden shadow-inner border border-[#2f2f35]`}>
               {viewMode === 'presentation' ? (
                 <>
                   {/* Transparent Anchor Target for YouTube Video positioning */}
@@ -686,7 +690,10 @@ function MeetingRoom() {
                     </div>
                   )}
 
-                  {/* User name tag (bottom left) - pointer-events-none to click-through */}
+                  {/* Overlay UI (Name tag & Avatars) hidden when video is playing to avoid blocking controls */}
+                  {!isCameraOn && (
+                    <>
+                      {/* User name tag (bottom left) - pointer-events-none to click-through */}
                   <div className="absolute bottom-4 left-4 bg-[#111014]/75 backdrop-blur-md px-3.5 py-1.75 rounded-lg text-sm font-semibold text-white flex items-center gap-2 select-none border border-[#ffffff]/10 z-10 pointer-events-none">
                     <span className="truncate max-w-[180px]">{myProfileName}</span>
                     <MicOff className="w-4 h-4 text-[#adadad]" />
@@ -760,6 +767,8 @@ function MeetingRoom() {
                       </div>
                     </div>
                   </div>
+                    </>
+                  )}
                 </>
               ) : (
                 /* Gallery Grid View with dynamic avatar sizing */
@@ -773,7 +782,7 @@ function MeetingRoom() {
                       'grid-cols-3'
                     }`}>
                       {/* Boss Card (housing the video stream/presentation if camera is on) */}
-                      <div className={`bg-[#1b1a1f] rounded-xl overflow-hidden border relative flex items-center justify-center shadow-lg transition-all duration-300 ${
+                      <div className={`${isCameraOn ? 'bg-transparent' : 'bg-[#1b1a1f]'} rounded-xl overflow-hidden border relative flex items-center justify-center shadow-lg transition-all duration-300 ${
                         speakerStates[colleagueName] ? 'border-[#7f85f5] ring-2 ring-[#7f85f5]' : 'border-[#484649]/60'
                       }`}>
                         <div
