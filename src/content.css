@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
 
 /* -------------------------------------------------------------
    YouTube Page Overrides (Light DOM)
@@ -33,7 +34,7 @@ html.teams-stealth-active #cinematics {
 }
 
 /* Hide all other primary page contents (like description, title, comments) except player */
-html.teams-stealth-active #primary-inner > :not(#player):not(#player-theater-container):not(#ytd-player) {
+html.teams-stealth-active #primary-inner> :not(#player):not(#player-theater-container):not(#ytd-player) {
   display: none !important;
 }
 
@@ -70,14 +71,16 @@ html.teams-stealth-active #movie_player {
 /* Override YouTube Player positioning and size to fill the stage placeholder precisely */
 html.teams-stealth-active .teams-stealth-positioned-player {
   position: fixed !important;
-  z-index: 1000 !important; /* Place video between background and Teams UI overlay */
+  z-index: 1000 !important;
+  /* Place video between background and Teams UI overlay */
   pointer-events: auto !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  background-color: #000000 !important; /* Solid black background for player letterboxing */
+  background-color: #000000 !important;
+  /* Solid black background for player letterboxing */
 }
 
 /* Ensure the video element and its containers fill the positioned player */
@@ -126,7 +129,8 @@ html.teams-stealth-active .teams-stealth-positioned-player .ytp-chrome-bottom {
 /* Ensure the player doesn't render dark overlays that break the illusion */
 html.teams-stealth-active .teams-stealth-positioned-player.ytp-fullscreen,
 html.teams-stealth-active #movie_player.ytp-fullscreen {
-  z-index: 2147483647 !important; /* Restore normal fullscreen mode if clicked */
+  z-index: 2147483647 !important;
+  /* Restore normal fullscreen mode if clicked */
 }
 
 
@@ -142,9 +146,36 @@ html.teams-stealth-active #movie_player.ytp-fullscreen {
   left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  z-index: 1001 !important; /* Sit on top of the video player, but we use pointer-events: none */
+  z-index: 1001 !important;
+  /* Sit on top of the video player, but we use pointer-events: none */
   pointer-events: none !important;
   font-family: 'Segoe UI', system-ui, Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Scoped Preflight for Teams UI */
+:where(.teams-wrapper) *,
+:where(.teams-wrapper) ::before,
+:where(.teams-wrapper) ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: #e5e7eb;
+}
+
+:where(.teams-wrapper) button {
+  background-color: transparent;
+  background-image: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+:where(.teams-wrapper) svg {
+  display: block;
+  vertical-align: middle;
 }
 
 .teams-wrapper {
@@ -170,13 +201,16 @@ html.teams-stealth-active #movie_player.ytp-fullscreen {
     transform: translateY(100vh) scale(0.5);
     opacity: 0;
   }
+
   10% {
     opacity: 1;
     transform: translateY(90vh) scale(1);
   }
+
   90% {
     opacity: 1;
   }
+
   100% {
     transform: translateY(10vh) scale(0.8) translateX(var(--drift, 0px));
     opacity: 0;
@@ -194,8 +228,15 @@ html.teams-stealth-active #movie_player.ytp-fullscreen {
 
 /* Animations for speaking waveforms */
 @keyframes voicePulse {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
+
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
 }
 
 .voice-bar {
@@ -208,22 +249,33 @@ html.teams-stealth-active #movie_player.ytp-fullscreen {
   animation: voicePulse 1s ease-in-out infinite;
 }
 
-.voice-bar-1 { animation-delay: 0.1s; }
-.voice-bar-2 { animation-delay: 0.3s; }
-.voice-bar-3 { animation-delay: 0.5s; }
+.voice-bar-1 {
+  animation-delay: 0.1s;
+}
+
+.voice-bar-2 {
+  animation-delay: 0.3s;
+}
+
+.voice-bar-3 {
+  animation-delay: 0.5s;
+}
 
 /* Custom Scrollbars to match Teams UI */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #3c3c3c;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #4f4f4f;
 }
@@ -254,8 +306,10 @@ html.teams-stealth-active #movie_player.ytp-fullscreen {
 }
 
 .participant-card-presentation {
-  width: 160px; /* 10rem */
-  height: 104px; /* 6.5rem */
+  width: 160px;
+  /* 10rem */
+  height: 104px;
+  /* 6.5rem */
 }
 
 /* Hide scrollbar utilities */

@@ -16,6 +16,7 @@ import {
   LayoutGrid,
   MoreHorizontal, 
   Share2, 
+  Phone,
   PhoneOff, 
   ChevronDown, 
   CalendarPlus 
@@ -646,18 +647,13 @@ function MeetingRoom() {
 
           {/* Leave Button */}
           <div className="flex items-center ml-3.5 teams-interactive">
-            <div className="flex items-center h-12 rounded-md bg-[#c43135] hover:bg-[#a82528] transition-colors text-white overflow-hidden font-bold text-[15px] shadow">
-              <button
-                onClick={handlePanicLeave}
-                className="h-full px-5 flex items-center gap-2.5 border-r border-[#9b1c1e] hover:bg-black/10 transition-colors"
-              >
-                <PhoneOff className="w-5 h-5 rotate-[135deg]" />
-                <span>Leave</span>
-              </button>
-              <button className="h-full px-3.5 hover:bg-black/10 transition-colors flex items-center justify-center">
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={handlePanicLeave}
+              className="flex items-center gap-2.5 h-11 px-6 rounded-md bg-[#a82528] hover:bg-[#8b1e21] transition-colors text-white font-bold text-[16px] shadow"
+            >
+              <Phone className="w-5 h-5 fill-current rotate-[135deg]" />
+              <span>Leave</span>
+            </button>
           </div>
         </div>
       </div>
@@ -863,10 +859,10 @@ function MeetingRoom() {
             <aside className="teams-interactive w-[320px] bg-[#201f24] border-l border-[#2d2c33] flex flex-col select-none z-[6000] shrink-0">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-[#2d2c33]">
-                <h2 className="text-base font-semibold text-[#f3f4f6]">Participants</h2>
+                <h2 className="text-lg font-semibold text-[#f3f4f6]">Participants</h2>
                 <button
                   onClick={() => setActiveSidebar(null)}
-                  className="text-[#adadad] hover:text-white p-1 rounded hover:bg-[#3d3b42] transition-colors"
+                  className="text-[#adadad] hover:text-white p-1.5 rounded text-lg hover:bg-[#3d3b42] transition-colors"
                 >
                   ✕
                 </button>
@@ -875,8 +871,8 @@ function MeetingRoom() {
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {/* Share invite */}
-                <button className="w-full py-2.5 px-3.5 rounded-md border border-[#484649] text-[#f3f4f6] hover:bg-[#2d2c33] transition-colors text-sm font-semibold flex items-center justify-center gap-2">
-                  <Share2 className="w-4.5 h-4.5 text-[#adadad]" />
+                <button className="w-full py-3 px-4 rounded-md border border-[#484649] text-[#f3f4f6] hover:bg-[#2d2c33] transition-colors text-base font-semibold flex items-center justify-center gap-2">
+                  <Share2 className="w-5 h-5 text-[#adadad]" />
                   <span>Share invite</span>
                 </button>
 
@@ -887,41 +883,41 @@ function MeetingRoom() {
                     handleAddParticipant(newParticipantInput);
                     setNewParticipantInput('');
                   }}
-                  className="relative flex items-center my-2"
+                  className="relative flex items-center my-3"
                 >
                   <input
                     type="text"
                     value={newParticipantInput}
                     onInput={(e) => setNewParticipantInput(e.target.value)}
                     placeholder="Invite someone or start typing..."
-                    className="w-full pl-3 pr-8 py-2 text-sm bg-[#1f1f22] border border-[#484649] focus:border-[#7f85f5] rounded-md text-[#f3f4f6] placeholder-[#adadad] outline-none transition-colors"
+                    className="w-full pl-3 pr-8 py-2.5 text-base bg-[#1f1f22] border border-[#484649] focus:border-[#7f85f5] rounded-md text-[#f3f4f6] placeholder-[#adadad] outline-none transition-colors"
                   />
                   <button
                     type="submit"
                     className="absolute right-2 text-[#adadad] hover:text-white transition-colors"
                   >
-                    <UserPlus className="w-4.5 h-4.5" />
+                    <UserPlus className="w-5 h-5" />
                   </button>
                 </form>
 
                 {/* Participant list */}
                 <div className="space-y-2 mt-4">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#adadad] uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-sm font-bold text-[#adadad] uppercase tracking-wider">
                     <span>In this meeting ({2 + extraParticipants.length})</span>
-                    <ChevronDown className="w-3.5 h-3.5" />
+                    <ChevronDown className="w-4 h-4" />
                   </div>
 
                   {/* Colleague (Boss) - Listed First */}
                   <div className="flex items-center justify-between py-1.5 hover:bg-[#2d2c33]/40 px-1 rounded-md transition-colors">
                     <div className="flex items-center gap-3">
                       <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shadow-sm"
                         style={{ backgroundColor: '#ebd3e8', color: '#54304d' }}
                       >
                         {colleagueInitials}
                       </div>
                       <div className="leading-tight">
-                        <div className="text-sm font-semibold text-white">{colleagueName}</div>
+                        <div className="text-base font-semibold text-white">{colleagueName}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -932,7 +928,7 @@ function MeetingRoom() {
                           <span className="voice-bar voice-bar-3"></span>
                         </div>
                       ) : (
-                        <MicOff className="w-3.5 h-3.5 text-[#adadad]" />
+                        <MicOff className="w-4 h-4 text-[#adadad]" />
                       )}
                     </div>
                   </div>
@@ -942,13 +938,13 @@ function MeetingRoom() {
                     <div key={p.id} className="flex items-center justify-between py-1.5 hover:bg-[#2d2c33]/40 px-1 rounded-md transition-colors group/member">
                       <div className="flex items-center gap-3">
                         <div 
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shadow-sm"
                           style={{ backgroundColor: p.color?.bg || '#ebd3e8', color: p.color?.text || '#54304d' }}
                         >
                           {p.initials}
                         </div>
                         <div className="leading-tight">
-                          <div className="text-sm font-semibold text-white">{p.name}</div>
+                          <div className="text-base font-semibold text-white">{p.name}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -957,9 +953,9 @@ function MeetingRoom() {
                           className="text-[#adadad] hover:text-rose-400 p-1 rounded hover:bg-[#3d3b42] opacity-80 md:opacity-0 md:group-hover/member:opacity-100 transition-opacity"
                           title="Remove participant"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
-                        <MicOff className="w-3.5 h-3.5 text-[#adadad]" />
+                        <MicOff className="w-5 h-5 text-[#adadad]" />
                       </div>
                     </div>
                   ))}
@@ -991,10 +987,10 @@ function MeetingRoom() {
             <aside className="teams-interactive w-[320px] bg-[#201f24] border-l border-[#2d2c33] flex flex-col select-none z-[6000] shrink-0">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-[#2d2c33]">
-                <h2 className="text-base font-semibold text-[#f3f4f6]">Meeting chat</h2>
+                <h2 className="text-lg font-semibold text-[#f3f4f6]">Meeting chat</h2>
                 <button
                   onClick={() => setActiveSidebar(null)}
-                  className="text-[#adadad] hover:text-white p-1 rounded hover:bg-[#3d3b42] transition-colors"
+                  className="text-[#adadad] hover:text-white p-1.5 rounded text-lg hover:bg-[#3d3b42] transition-colors"
                 >
                   ✕
                 </button>
@@ -1003,15 +999,15 @@ function MeetingRoom() {
               {/* Message logs */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {/* System invitation message */}
-                <div className="flex items-start gap-2 text-sm text-[#adadad] select-none py-1 border-b border-[#2d2c33]/30 pb-3">
-                  <CalendarPlus className="w-4.5 h-4.5 shrink-0 text-[#adadad] mt-0.5" />
+                <div className="flex items-start gap-2 text-base text-[#adadad] select-none py-1 border-b border-[#2d2c33]/30 pb-3">
+                  <CalendarPlus className="w-5 h-5 shrink-0 text-[#adadad] mt-0.5" />
                   <span>{colleagueName} (Guest) was invited to the meeting.</span>
                 </div>
 
                 {chatMessages.map(msg => (
                   <div key={msg.id} className="flex gap-2.5">
                     <div
-                      className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold shadow-sm"
+                      className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-sm font-bold shadow-sm"
                       style={{
                         backgroundColor: msg.isMe ? '#f5d6c6' : '#ebd3e8',
                         color: msg.isMe ? '#5a3d31' : '#54304d'
@@ -1022,12 +1018,12 @@ function MeetingRoom() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-xs font-semibold text-[#f3f4f6] truncate">
+                        <span className="text-sm font-semibold text-[#f3f4f6] truncate">
                           {msg.isMe ? myProfileName : colleagueName}
                         </span>
-                        <span className="text-[10px] text-[#adadad]">{msg.time}</span>
+                        <span className="text-xs text-[#adadad]">{msg.time}</span>
                       </div>
-                      <div className="mt-1 p-2 rounded-lg text-[13px] leading-normal break-words bg-[#2d2c33] text-[#e3e4e6] border border-[#3d3b42]/70">
+                      <div className="mt-1 p-2 rounded-lg text-[15px] leading-normal break-words bg-[#2d2c33] text-[#e3e4e6] border border-[#3d3b42]/70">
                         {msg.message}
                       </div>
                     </div>
@@ -1049,24 +1045,24 @@ function MeetingRoom() {
                     }}
                     placeholder="Type a message"
                     rows={2}
-                    className="bg-transparent text-[13px] text-white placeholder-[#adadad] resize-none outline-none w-full pr-12 pb-2"
+                    className="bg-transparent text-[15px] text-white placeholder-[#adadad] resize-none outline-none w-full pr-12 pb-2"
                   />
                   <div className="flex items-center justify-end gap-1.5 self-end mt-1">
                     <button
                       type="button"
                       onClick={() => setChatInputValue(prev => prev + '😊')}
-                      className="p-1 hover:bg-[#3d3b42] rounded text-[#adadad] hover:text-white transition-colors"
+                      className="p-1.5 hover:bg-[#3d3b42] rounded text-[#adadad] hover:text-white transition-colors"
                       title="Add emoji"
                     >
-                      <Smile className="w-4.5 h-4.5" />
+                      <Smile className="w-5 h-5" />
                     </button>
                     <button
                       type="submit"
                       disabled={!chatInputValue.trim()}
-                      className={`p-1 rounded transition-colors ${chatInputValue.trim() ? 'text-[#7f85f5] hover:bg-[#3d3b42]' : 'text-[#484649] cursor-not-allowed'}`}
+                      className={`p-1.5 rounded transition-colors ${chatInputValue.trim() ? 'text-[#7f85f5] hover:bg-[#3d3b42]' : 'text-[#484649] cursor-not-allowed'}`}
                       title="Send message"
                     >
-                      <Send className="w-4.5 h-4.5" />
+                      <Send className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
