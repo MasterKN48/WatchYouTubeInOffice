@@ -39,7 +39,7 @@ const checkStealthInitialState = () => {
 };
 checkStealthInitialState();
 
-const TEAMS_FAVICON = chrome.runtime && chrome.runtime.getURL ? chrome.runtime.getURL('favicon.svg') : 'https://statics.teams.cdn.office.net/evergreen-assets/apps/teams_v2_16x16.ico';
+const TEAMS_FAVICON = chrome.runtime && chrome.runtime.getURL ? chrome.runtime.getURL('image.png') : 'https://statics.teams.cdn.office.net/evergreen-assets/apps/teams_v2_16x16.ico';
 
 function MeetingRoom() {
   const [enabled, setEnabled] = useState(true);

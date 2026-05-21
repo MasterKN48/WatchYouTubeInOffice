@@ -40,6 +40,7 @@
       "resources": [
         "content.css",
         "favicon.svg",
+        "image.png",
         "assets/*"
       ],
       "matches": [
