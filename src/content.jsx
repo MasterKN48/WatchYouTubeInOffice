@@ -555,14 +555,13 @@ function MeetingRoom() {
             <span className="text-sm font-semibold mt-1">Chat</span>
           </button>
 
-          {/* People Button with active indicator underline and badge */}
+          {/* People Button with active indicator underline */}
           <button
             onClick={() => setActiveSidebar(activeSidebar === 'participants' ? null : 'participants')}
             className={`flex flex-col items-center justify-center w-20 h-16 text-[#adadad] hover:text-white transition-colors relative ${activeSidebar === 'participants' ? 'text-white after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[4px] after:bg-[#7f85f5]' : ''}`}
           >
             <div className="relative flex items-center justify-center">
               <Users className="w-7 h-7" />
-              <span className="absolute -top-[2px] -right-[2px] bg-[#202023] text-[10px] font-bold text-white w-[18px] h-[18px] flex items-center justify-center rounded-full border border-[#adadad] shadow-md select-none">{2 + extraParticipants.length}</span>
             </div>
             <span className="text-sm font-semibold mt-1">People</span>
           </button>

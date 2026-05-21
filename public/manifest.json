@@ -5,12 +5,18 @@
   "description": "Transforms YouTube into an MS Teams meeting layout so you can watch videos stealthily in the office.",
   "action": {
     "default_popup": "index.html",
-    "default_icon": "favicon.svg"
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon48.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   },
   "icons": {
-    "16": "favicon.svg",
-    "48": "favicon.svg",
-    "128": "favicon.svg"
+    "16": "icon16.png",
+    "32": "icon48.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
   },
   "permissions": [
     "storage"
