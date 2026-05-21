@@ -1,70 +1,43 @@
 import { render } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
+import { 
+  UserPlus, 
+  Trash2, 
+  Smile, 
+  Send, 
+  ShieldCheck, 
+  Mic, 
+  MicOff, 
+  Video, 
+  VideoOff, 
+  MessageSquare, 
+  Users, 
+  Hand, 
+  LayoutGrid,
+  MoreHorizontal, 
+  Share2, 
+  PhoneOff, 
+  ChevronDown, 
+  CalendarPlus 
+} from 'lucide-react';
 import './content.css';
 
-
-// Coworker database with initials, names, and gradient backgrounds
-const COWORKERS = [
-  { name: 'Sarah Connor', role: 'Product Manager', initials: 'SC', bg: 'linear-gradient(135deg, #ff7675, #e84393)' },
-  { name: 'David Miller', role: 'Tech Lead', initials: 'DM', bg: 'linear-gradient(135deg, #74b9ff, #0984e3)' },
-  { name: 'Emily Davis', role: 'QA Analyst', initials: 'ED', bg: 'linear-gradient(135deg, #55efc4, #00b894)' },
-  { name: 'James Smith', role: 'Director of Eng.', initials: 'JS', bg: 'linear-gradient(135deg, #a29bfe, #6c5ce7)' },
-  { name: 'Linda Johnson', role: 'HR Manager', initials: 'LJ', bg: 'linear-gradient(135deg, #ffeaa7, #fdcb6e)' },
-  { name: 'Robert Chen', role: 'Frontend Dev', initials: 'RC', bg: 'linear-gradient(135deg, #81ecec, #00cec9)' },
-  { name: 'Patricia Garcia', role: 'UX Designer', initials: 'PG', bg: 'linear-gradient(135deg, #fab1a0, #e17055)' },
-  { name: 'Thomas Wright', role: 'DevOps Architect', initials: 'TW', bg: 'linear-gradient(135deg, #d2dae2, #485460)' },
-];
-
-const CORPORATE_PHRASES = {
-  'Sarah Connor': [
-    "I think we should double check the budget for this project.",
-    "Can we schedule a follow-up session next Tuesday?",
-    "I agree with this approach, let's push forward.",
-    "Do we have a target release date for these changes?"
-  ],
-  'David Miller': [
-    "From a technical perspective, this architecture is very scalable.",
-    "We need to run some load tests before deploying.",
-    "I'll create the JIRA tickets for this work stream.",
-    "We might want to double check the caching layer."
-  ],
-  'Emily Davis': [
-    "I've completed testing on the staging environment. Looks solid.",
-    "There is a minor alignment bug on mobile Safari we should fix.",
-    "Are we planning to write unit tests for this?",
-    "I'll sign off on this release once the hotfix is verified."
-  ],
-  'James Smith': [
-    "Let's make sure we align this with our Q3 OKRs.",
-    "I'll discuss this with the leadership team tomorrow.",
-    "Great progress, team! Keep up the momentum.",
-    "We need to monitor our burn rate for this sprint."
-  ],
-  'Linda Johnson': [
-    "Please remember to submit your timesheets by Friday EOD.",
-    "Welcome to the team, everyone!",
-    "We have an upcoming team building event next month.",
-    "Reach out if you need any support with HR tools."
-  ],
-  'Robert Chen': [
-    "I've pushed the frontend code to the main branch.",
-    "I will start working on the responsive layout today.",
-    "We should use CSS Grid for this grid layout.",
-    "I will optimize the bundle sizes this afternoon."
-  ],
-  'Patricia Garcia': [
-    "The user flow looks very intuitive in these tests.",
-    "I'll upload the Figma mockups by EOD.",
-    "Can we get user feedback on this design prototype?",
-    "I updated the design system components last night."
-  ],
-  'Thomas Wright': [
-    "The CI/CD pipeline is now fully automated.",
-    "I'm deploying the latest release to production.",
-    "I'll investigate the database latency issues.",
-    "We need to scale our database instances for Q4."
-  ]
+// Immediate check to apply stealth style as early as possible and avoid flicker
+const checkStealthInitialState = () => {
+  const isExt = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+  if (isExt) {
+    chrome.storage.local.get(['enabled'], (data) => {
+      if (data.enabled !== false) {
+        document.documentElement.classList.add('teams-stealth-active');
+      }
+    });
+  } else {
+    if (localStorage.getItem('enabled') !== 'false') {
+      document.documentElement.classList.add('teams-stealth-active');
+    }
+  }
 };
+checkStealthInitialState();
 
 const TEAMS_FAVICON = 'https://statics.teams.cdn.office.net/evergreen-assets/apps/teams_v2_16x16.ico';
 
@@ -75,22 +48,82 @@ function MeetingRoom() {
   const [viewMode, setViewMode] = useState('presentation'); // 'presentation' or 'gallery'
   const [activeSidebar, setActiveSidebar] = useState(null); // 'chat' or 'participants' or null
 
+  const [myProfileName, setMyProfileName] = useState('N K');
+  const [myProfileInitials, setMyProfileInitials] = useState('NK');
+  const [colleagueName, setColleagueName] = useState('Boss');
+  const [colleagueInitials, setColleagueInitials] = useState('B');
+  const [extraParticipants, setExtraParticipants] = useState([]);
+
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [reactions, setReactions] = useState([]);
   const [chatMessages, setChatMessages] = useState([
-    { id: 1, sender: 'David Miller', initials: 'DM', message: "Hi team, starting shortly.", time: "10:00 AM", isMe: false },
-    { id: 2, sender: 'Sarah Connor', initials: 'SC', message: "Perfect, I have the slides ready.", time: "10:01 AM", isMe: false }
+    { id: 1, sender: 'Boss', initials: 'B', message: "Hi team, glad to join this sync.", time: "10:00 AM", isMe: false },
+    { id: 2, sender: 'Boss', initials: 'B', message: "Can you see my screen share properly?", time: "10:01 AM", isMe: false }
   ]);
-  const [meetingDuration, setMeetingDuration] = useState(1320); // starts at 22:00 mins
+  const [meetingDuration, setMeetingDuration] = useState(51); // starts at 00:51 mins
   const [speakerStates, setSpeakerStates] = useState({});
-  const [customTitleInput, setCustomTitleInput] = useState('');
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [chatInputValue, setChatInputValue] = useState('');
+  const [newParticipantInput, setNewParticipantInput] = useState('');
 
   const placeholderRef = useRef(null);
   const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+
+  const AVATAR_COLORS = [
+    { bg: '#f5d6c6', text: '#5a3d31' }, // Peach
+    { bg: '#ebd3e8', text: '#54304d' }, // Lavender/Lilac
+    { bg: '#d0e7f5', text: '#234a61' }, // Soft Blue
+    { bg: '#d1f2d9', text: '#21522f' }, // Mint Green
+    { bg: '#fdf1cb', text: '#615119' }, // Warm Yellow
+    { bg: '#e0dbec', text: '#3c355c' }, // Cool Purple
+    { bg: '#ffd6d6', text: '#6b2d2d' }, // Rose Pink
+  ];
+
+  const getAvatarColor = (name) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % AVATAR_COLORS.length;
+    return AVATAR_COLORS[index];
+  };
+
+  const handleAddParticipant = (name) => {
+    if (!name.trim()) return;
+    const parts = name.trim().split(' ');
+    let initials = '';
+    if (parts.length > 1) {
+      initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    } else {
+      initials = parts[0].substring(0, 2).toUpperCase();
+    }
+    const color = getAvatarColor(name);
+    const newParticipant = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      initials,
+      color
+    };
+    const updated = [...extraParticipants, newParticipant];
+    setExtraParticipants(updated);
+    
+    if (isExtension) {
+      chrome.storage.local.set({ extraParticipants: updated });
+    } else {
+      localStorage.setItem('extraParticipants', JSON.stringify(updated));
+    }
+  };
+
+  const handleRemoveParticipant = (id) => {
+    const updated = extraParticipants.filter(p => p.id !== id);
+    setExtraParticipants(updated);
+    if (isExtension) {
+      chrome.storage.local.set({ extraParticipants: updated });
+    } else {
+      localStorage.setItem('extraParticipants', JSON.stringify(updated));
+    }
+  };
 
   // Load configuration and listen to changes
   useEffect(() => {
@@ -101,7 +134,6 @@ function MeetingRoom() {
           document.documentElement.classList.add('teams-stealth-active');
         } else {
           document.documentElement.classList.remove('teams-stealth-active');
-          // Reset fixed styling of YT player
           const ytPlayer = document.getElementById('movie_player');
           if (ytPlayer) {
             ytPlayer.removeAttribute('style');
@@ -110,14 +142,30 @@ function MeetingRoom() {
       }
       if (data.meetingTitle !== undefined) {
         setMeetingTitle(data.meetingTitle);
-        setCustomTitleInput(data.meetingTitle);
       }
       if (data.panicUrl !== undefined) setPanicUrl(data.panicUrl);
       if (data.viewMode !== undefined) setViewMode(data.viewMode);
+      if (data.myProfileName !== undefined) setMyProfileName(data.myProfileName);
+      if (data.myProfileInitials !== undefined) setMyProfileInitials(data.myProfileInitials);
+      if (data.colleagueName !== undefined) setColleagueName(data.colleagueName);
+      if (data.colleagueInitials !== undefined) setColleagueInitials(data.colleagueInitials);
+      if (data.extraParticipants !== undefined) {
+        setExtraParticipants(data.extraParticipants);
+      }
     };
 
     if (isExtension) {
-      chrome.storage.local.get(['enabled', 'meetingTitle', 'panicUrl', 'viewMode'], loadSettings);
+      chrome.storage.local.get([
+        'enabled', 
+        'meetingTitle', 
+        'panicUrl', 
+        'viewMode', 
+        'myProfileName', 
+        'myProfileInitials', 
+        'colleagueName', 
+        'colleagueInitials',
+        'extraParticipants'
+      ], loadSettings);
 
       const listener = (message) => {
         if (message.action === 'updateSettings') {
@@ -127,12 +175,16 @@ function MeetingRoom() {
       chrome.runtime.onMessage.addListener(listener);
       return () => chrome.runtime.onMessage.removeListener(listener);
     } else {
-      // Local testing
       const cached = {
         enabled: localStorage.getItem('enabled') !== 'false',
         meetingTitle: localStorage.getItem('meetingTitle') || 'Daily Scrum & Project Alignment Sync',
         panicUrl: localStorage.getItem('panicUrl') || 'https://outlook.office.com',
-        viewMode: localStorage.getItem('viewMode') || 'presentation'
+        viewMode: localStorage.getItem('viewMode') || 'presentation',
+        myProfileName: localStorage.getItem('myProfileName') || 'N K',
+        myProfileInitials: localStorage.getItem('myProfileInitials') || 'NK',
+        colleagueName: localStorage.getItem('colleagueName') || 'Boss',
+        colleagueInitials: localStorage.getItem('colleagueInitials') || 'B',
+        extraParticipants: JSON.parse(localStorage.getItem('extraParticipants') || '[]')
       };
       loadSettings(cached);
     }
@@ -152,11 +204,9 @@ function MeetingRoom() {
     if (!enabled) return;
 
     const maskTab = () => {
-      // Title
       if (document.title !== meetingTitle) {
         document.title = meetingTitle;
       }
-      // Favicon
       let icon = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel="shortcut icon"]');
       if (!icon) {
         icon = document.createElement('link');
@@ -190,7 +240,6 @@ function MeetingRoom() {
       ytPlayer.style.setProperty('height', `${rect.height}px`, 'important');
     };
 
-    // Watch resizing of the placeholder
     const resizeObserver = new ResizeObserver(() => {
       updatePlayerPosition();
     });
@@ -199,7 +248,6 @@ function MeetingRoom() {
       resizeObserver.observe(placeholderRef.current);
     }
 
-    // Trigger update on resize and animation frames to ensure alignment
     window.addEventListener('resize', updatePlayerPosition);
     let rafId = requestAnimationFrame(function tick() {
       updatePlayerPosition();
@@ -218,7 +266,7 @@ function MeetingRoom() {
     const video = document.querySelector('video');
     if (!video) return;
 
-    // Synchronize initial state
+    setIsCameraOn(!video.paused);
     setIsMuted(video.muted);
 
     const handlePlayPause = () => {
@@ -239,26 +287,29 @@ function MeetingRoom() {
     };
   }, [enabled]);
 
-  // Random Coworker Chat & Speaking simulation
+  // Random Colleague Chat & Speaking simulation
   useEffect(() => {
     if (!enabled) return;
 
     const interval = setInterval(() => {
-      // Pick random coworker to speak
-      const speakerIndex = Math.floor(Math.random() * COWORKERS.length);
-      const speaker = COWORKERS[speakerIndex];
+      setSpeakerStates({ [colleagueName]: true });
 
-      // Update speaker state
-      setSpeakerStates({ [speaker.name]: true });
-
-      // Clean up speaking outline after 4 seconds
       setTimeout(() => {
         setSpeakerStates({});
       }, 4000);
 
-      // 55% chance coworker writes in chat
       if (Math.random() < 0.55) {
-        const phrases = CORPORATE_PHRASES[speaker.name];
+        const phrases = [
+          "Let's make sure we align on this design.",
+          "I think we should double check the budget for this project.",
+          "Can we schedule a follow-up session next Tuesday?",
+          "I agree with this approach, let's push forward.",
+          "Do we have a target release date for these changes?",
+          "From a technical perspective, this is very scalable.",
+          "We need to run some load tests before deploying.",
+          "I'll create the tickets for this work stream.",
+          "Great progress, team! Keep up the momentum."
+        ];
         const phrase = phrases[Math.floor(Math.random() * phrases.length)];
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -266,18 +317,18 @@ function MeetingRoom() {
           ...prev,
           {
             id: Date.now(),
-            sender: speaker.name,
-            initials: speaker.initials,
+            sender: colleagueName,
+            initials: colleagueInitials,
             message: phrase,
             time: timeStr,
             isMe: false
           }
-        ].slice(-30)); // Keep last 30 messages
+        ].slice(-30));
       }
     }, 12000);
 
     return () => clearInterval(interval);
-  }, [enabled]);
+  }, [enabled, colleagueName, colleagueInitials]);
 
   // Scrape YouTube comments to inject as meeting chat
   useEffect(() => {
@@ -287,42 +338,30 @@ function MeetingRoom() {
       const commentNodes = document.querySelectorAll('ytd-comment-thread-renderer');
       if (commentNodes.length === 0) return;
 
-      // Extract up to 5 comments randomly or chronologically
       const scraped = [];
       const len = Math.min(commentNodes.length, 10);
       for (let i = 0; i < len; i++) {
         const node = commentNodes[i];
-        const author = node.querySelector('#author-text')?.textContent?.trim() || 'Anonymous Colleague';
         const content = node.querySelector('#content-text')?.textContent?.trim() || '';
         if (content) {
-          // Map random commenter names to clean names (like John H., Sarah W. or keep professional)
-          const cleanAuthor = author.replace(/[^a-zA-Z ]/g, '').substring(0, 16) || 'Colleague';
-          const initials = cleanAuthor.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'C';
-          
-          scraped.push({
-            author: cleanAuthor,
-            initials,
-            content
-          });
+          scraped.push(content);
         }
       }
 
       if (scraped.length > 0) {
-        // Inject a scraped comment into our chat logs
-        const randomComment = scraped[Math.floor(Math.random() * scraped.length)];
+        const randomCommentContent = scraped[Math.floor(Math.random() * scraped.length)];
         const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         setChatMessages(prev => {
-          // Avoid duplicate messages
-          if (prev.some(m => m.message === randomComment.content)) return prev;
+          if (prev.some(m => m.message === randomCommentContent)) return prev;
 
           return [
             ...prev,
             {
               id: Date.now(),
-              sender: randomComment.author,
-              initials: randomComment.initials,
-              message: randomComment.content,
+              sender: colleagueName,
+              initials: colleagueInitials,
+              message: randomCommentContent,
               time: timeStr,
               isMe: false
             }
@@ -331,10 +370,9 @@ function MeetingRoom() {
       }
     };
 
-    // Scrape every 20 seconds if comments are loaded in the background
     const interval = setInterval(scrapeComments, 20000);
     return () => clearInterval(interval);
-  }, [enabled]);
+  }, [enabled, colleagueName, colleagueInitials]);
 
   const toggleMute = () => {
     const video = document.querySelector('video');
@@ -367,12 +405,11 @@ function MeetingRoom() {
 
   const addReaction = (emoji) => {
     const id = Date.now() + Math.random();
-    const drift = (Math.random() * 200 - 100) + 'px'; // Random side movement
-    const leftOffset = (50 + Math.random() * 30 - 15) + '%'; // Random bottom start position
+    const drift = (Math.random() * 200 - 100) + 'px';
+    const leftOffset = (50 + Math.random() * 30 - 15) + '%';
 
     setReactions(prev => [...prev, { id, emoji, style: { '--drift': drift, left: leftOffset } }]);
 
-    // Clean up reaction
     setTimeout(() => {
       setReactions(prev => prev.filter(r => r.id !== id));
     }, 3000);
@@ -387,8 +424,8 @@ function MeetingRoom() {
       ...prev,
       {
         id: Date.now(),
-        sender: 'You (Nitin Kumar)',
-        initials: 'NK',
+        sender: myProfileName,
+        initials: myProfileInitials,
         message: chatInputValue,
         time: timeStr,
         isMe: true
@@ -398,28 +435,20 @@ function MeetingRoom() {
     setChatInputValue('');
   };
 
-  const handleRenameTitleSubmit = (e) => {
-    e.preventDefault();
-    if (customTitleInput.trim()) {
-      setMeetingTitle(customTitleInput);
-      setIsEditingTitle(false);
-      if (isExtension) {
-        chrome.storage.local.set({ meetingTitle: customTitleInput });
-      }
-    }
-  };
-
   const formatDuration = (sec) => {
     const hrs = Math.floor(sec / 3600);
     const mins = Math.floor((sec % 3600) / 60);
     const secs = sec % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   if (!enabled) return null;
 
   return (
-    <div className="teams-wrapper h-full w-full bg-[#1b1a1f] flex flex-col text-sm leading-normal">
+    <div className="teams-wrapper h-full w-full bg-transparent flex flex-col text-sm leading-normal">
       {/* Reaction Container (Floats above layout) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5000]">
         {reactions.map(r => (
@@ -429,86 +458,60 @@ function MeetingRoom() {
         ))}
       </div>
 
-      {/* TOP HEADER */}
-      <header className="teams-interactive flex items-center justify-between px-4 py-2 bg-[#201f24] border-b border-[#2d2c33] select-none h-12">
-        <div className="flex items-center gap-3">
-          {/* Time Counter */}
-          <div className="text-[13px] font-medium text-[#adadad] font-mono tracking-wider">
+      {/* CALL TOOLBAR (Now at the very top, full width) */}
+      <div className="teams-interactive w-full h-20 bg-[#202023] border-b border-[#2d2c33]/70 flex items-center justify-between px-6 select-none shrink-0 z-[5500]">
+        {/* Left: Shield icon + Time */}
+        <div className="flex items-center gap-3.5">
+          <div className="text-emerald-500 flex items-center justify-center">
+            <ShieldCheck className="w-7 h-7" />
+          </div>
+          <div className="text-[16px] font-bold text-[#adadad] font-mono tracking-wider">
             {formatDuration(meetingDuration)}
           </div>
-          <div className="w-[1px] h-4 bg-[#484649]" />
-          {/* Meeting Title */}
-          {isEditingTitle ? (
-            <form onSubmit={handleRenameTitleSubmit} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={customTitleInput}
-                onInput={(e) => setCustomTitleInput(e.target.value)}
-                className="bg-[#2d2c33] text-white px-2 py-0.5 text-xs rounded border border-[#5b5fc7] focus:outline-none"
-                autoFocus
-                onBlur={() => setIsEditingTitle(false)}
-              />
-            </form>
-          ) : (
-            <div
-              className="text-xs font-semibold text-[#f3f4f6] cursor-pointer hover:underline flex items-center gap-1.5"
-              onClick={() => setIsEditingTitle(true)}
-              title="Click to rename meeting"
-            >
-              <span>{meetingTitle}</span>
-              <svg className="w-3.5 h-3.5 fill-[#adadad]" viewBox="0 0 24 24">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-              </svg>
-            </div>
-          )}
         </div>
 
-        {/* TOP CONTROLS (ICONS & MICROPHONE ETC) */}
-        <div className="flex items-center gap-1 bg-[#29282e] p-1 rounded-lg">
-          {/* People list toggle */}
-          <button
-            onClick={() => setActiveSidebar(activeSidebar === 'participants' ? null : 'participants')}
-            className={`p-1.5 rounded hover:bg-[#3d3b42] transition-colors ${activeSidebar === 'participants' ? 'bg-[#3d3b42]' : ''}`}
-            title="People"
-          >
-            <svg className="w-5 h-5 fill-[#f3f4f6]" viewBox="0 0 24 24">
-              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 1.34 5 8s1.34 3 8 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-            </svg>
-          </button>
-
-          {/* Chat toggle */}
+        {/* Right: Action buttons with text underneath */}
+        <div className="flex items-center gap-2">
+          {/* Chat Button with active indicator underline */}
           <button
             onClick={() => setActiveSidebar(activeSidebar === 'chat' ? null : 'chat')}
-            className={`p-1.5 rounded hover:bg-[#3d3b42] transition-colors ${activeSidebar === 'chat' ? 'bg-[#3d3b42]' : ''}`}
-            title="Chat"
+            className={`flex flex-col items-center justify-center w-20 h-16 text-[#adadad] hover:text-white transition-colors relative ${activeSidebar === 'chat' ? 'text-white after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[4px] after:bg-[#7f85f5]' : ''}`}
           >
-            <svg className="w-5 h-5 fill-[#f3f4f6]" viewBox="0 0 24 24">
-              <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z" />
-            </svg>
+            <MessageSquare className="w-7 h-7" />
+            <span className="text-sm font-semibold mt-1">Chat</span>
           </button>
 
-          {/* Raise Hand toggle */}
+          {/* People Button with active indicator underline and badge */}
+          <button
+            onClick={() => setActiveSidebar(activeSidebar === 'participants' ? null : 'participants')}
+            className={`flex flex-col items-center justify-center w-20 h-16 text-[#adadad] hover:text-white transition-colors relative ${activeSidebar === 'participants' ? 'text-white after:absolute after:bottom-0 after:left-1 after:right-1 after:h-[4px] after:bg-[#7f85f5]' : ''}`}
+          >
+            <div className="relative flex items-center justify-center">
+              <Users className="w-7 h-7" />
+              <span className="absolute -top-[5px] -right-[6px] bg-[#242424] text-[10px] font-bold text-white w-[18px] h-[18px] flex items-center justify-center rounded-full border border-[#a1a1a1] shadow-md select-none">{2 + extraParticipants.length}</span>
+            </div>
+            <span className="text-sm font-semibold mt-1">People</span>
+          </button>
+
           <button
             onClick={() => setIsHandRaised(!isHandRaised)}
-            className={`p-1.5 rounded hover:bg-[#3d3b42] transition-colors ${isHandRaised ? 'bg-[#5b5fc7]/25 hover:bg-[#5b5fc7]/40' : ''}`}
-            title="Raise Hand"
+            className={`flex flex-col items-center justify-center w-20 h-16 rounded-lg text-[#adadad] hover:text-white hover:bg-[#1f1f22] transition-colors ${isHandRaised ? 'bg-[#5b5fc7]/20 text-white' : ''}`}
           >
-            <svg className={`w-5 h-5 ${isHandRaised ? 'fill-[#c084fc]' : 'fill-[#f3f4f6]'}`} viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-            </svg>
+            <Hand className="w-7 h-7" />
+            <span className="text-sm font-semibold mt-1">{isHandRaised ? 'Raised' : 'Raise'}</span>
           </button>
 
-          {/* React Dropdown */}
-          <div className="relative group/react">
-            <button className="p-1.5 rounded hover:bg-[#3d3b42] transition-colors" title="React">
-              <span className="text-base leading-none">😊</span>
+          <div className="relative group/react flex flex-col items-center justify-center">
+            <button className="flex flex-col items-center justify-center w-20 h-16 rounded-lg text-[#adadad] hover:text-white hover:bg-[#1f1f22] transition-colors">
+              <Smile className="w-7 h-7" />
+              <span className="text-sm font-semibold mt-1">React</span>
             </button>
-            {/* Reaction Floating Panel */}
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-[#201f24] border border-[#2d2c33] p-1.5 rounded-lg shadow-xl hidden group-hover/react:flex gap-1.5 z-[10000] w-max">
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-[#201f24] border border-[#2d2c33] p-2.5 rounded-lg shadow-xl hidden group-hover/react:flex gap-2 z-[10000] w-max">
               {['👍', '❤️', '👏', '😂', '😮'].map(emoji => (
                 <button
+                  key={emoji}
                   onClick={() => addReaction(emoji)}
-                  className="p-1 hover:bg-[#3d3b42] rounded text-base transition-colors"
+                  className="p-1.5 hover:bg-[#3d3b42] rounded text-lg transition-colors"
                 >
                   {emoji}
                 </button>
@@ -516,341 +519,479 @@ function MeetingRoom() {
             </div>
           </div>
 
-          <div className="w-[1.5px] h-5 bg-[#484649] mx-1" />
-
-          {/* Toggle View Mode */}
           <button
             onClick={() => setViewMode(viewMode === 'presentation' ? 'gallery' : 'presentation')}
-            className="p-1.5 rounded hover:bg-[#3d3b42] transition-colors"
-            title={viewMode === 'presentation' ? 'Switch to Gallery Mode' : 'Switch to Presentation Mode'}
+            className={`flex flex-col items-center justify-center w-20 h-16 rounded-lg text-[#adadad] hover:text-white hover:bg-[#1f1f22] transition-colors`}
           >
-            {viewMode === 'presentation' ? (
-              <svg className="w-5 h-5 fill-[#f3f4f6]" viewBox="0 0 24 24">
-                {/* Gallery Grid Icon */}
-                <path d="M4 11h5V5H4v6zm0 8h5v-6H4v6zm7 0h5v-6h-5v6zm0-14v6h5V5h-5zM4 19h16v-2H4v2zm0-4h16v-2H4v2zm0-4h16V9H4v2zm0-6v2h16V5H4z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 fill-[#f3f4f6]" viewBox="0 0 24 24">
-                {/* Presentation Layout Icon */}
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7V7h10v6z" />
-              </svg>
-            )}
+            <LayoutGrid className="w-7 h-7" />
+            <span className="text-sm font-semibold mt-1">View</span>
           </button>
 
-          <div className="w-[1.5px] h-5 bg-[#484649] mx-1" />
-
-          {/* Camera Button (Fake) */}
-          <button
-            onClick={togglePlay}
-            className={`p-1.5 rounded hover:bg-[#3d3b42] transition-colors ${isCameraOn ? 'bg-[#5b5fc7]/25' : ''}`}
-            title="Camera (Play/Pause)"
-          >
-            {isCameraOn ? (
-              <svg className="w-5 h-5 fill-[#5b5fc7]" viewBox="0 0 24 24">
-                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 fill-[#e57373]" viewBox="0 0 24 24">
-                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z M19.78 4.7l-1.42-1.42L3.3 18.35l1.42 1.42L19.78 4.7z" />
-              </svg>
-            )}
+          <button className="flex flex-col items-center justify-center w-20 h-16 rounded-lg text-[#adadad] hover:text-white hover:bg-[#1f1f22] transition-colors">
+            <MoreHorizontal className="w-7 h-7" />
+            <span className="text-sm font-semibold mt-1">More</span>
           </button>
 
-          {/* Mic Button */}
-          <button
-            onClick={toggleMute}
-            className={`p-1.5 rounded hover:bg-[#3d3b42] transition-colors ${!isMuted ? 'bg-[#5b5fc7]/25' : ''}`}
-            title="Microphone (Mute/Unmute)"
-          >
-            {!isMuted ? (
-              <svg className="w-5 h-5 fill-[#5b5fc7]" viewBox="0 0 24 24">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.72V21h2v-3.28c3.28-.52 6-3.3 6-6.72h-1.7z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 fill-[#e57373]" viewBox="0 0 24 24">
-                <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.34 3 3 3 .74 0 1.41-.26 1.95-.7l3.77 3.77c-.88.62-1.89.93-3.02.93-3 0-5.3-2.1-5.3-5.1H6.7c0 3.42 2.72 6.2 6 6.72V21h2v-3.28c1.33-.2 2.53-.74 3.55-1.52L19.73 21 21 19.73 4.27 3z" />
-              </svg>
-            )}
+          <div className="w-[1.5px] h-8 bg-[#2d2c33] mx-2" />
+
+          {/* Camera (Play/Pause video) */}
+          <div className="flex items-center">
+            <button
+              onClick={togglePlay}
+              className={`flex flex-col items-center justify-center w-16 h-16 rounded-l-lg hover:text-white hover:bg-[#1f1f22] transition-colors ${isCameraOn ? 'bg-[#5b5fc7]/20 text-[#5b5fc7]' : 'text-rose-400'}`}
+            >
+              {isCameraOn ? <Video className="w-7 h-7" /> : <VideoOff className="w-7 h-7" />}
+              <span className="text-sm font-semibold mt-1">Camera</span>
+            </button>
+            <button className="flex items-center justify-center w-6 h-16 rounded-r-lg hover:text-white hover:bg-[#1f1f22] text-[#adadad] transition-colors border-l border-[#2d2c33]/50">
+              <ChevronDown className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Mic (Mute/Unmute) */}
+          <div className="flex items-center">
+            <button
+              onClick={toggleMute}
+              className={`flex flex-col items-center justify-center w-16 h-16 rounded-l-lg hover:text-white hover:bg-[#1f1f22] transition-colors ${!isMuted ? 'bg-[#5b5fc7]/20 text-[#5b5fc7]' : 'text-rose-400'}`}
+            >
+              {!isMuted ? <Mic className="w-7 h-7" /> : <MicOff className="w-7 h-7" />}
+              <span className="text-sm font-semibold mt-1">Mic</span>
+            </button>
+            <button className="flex items-center justify-center w-6 h-16 rounded-r-lg hover:text-white hover:bg-[#1f1f22] text-[#adadad] transition-colors border-l border-[#2d2c33]/50">
+              <ChevronDown className="w-5 h-5" />
+            </button>
+          </div>
+
+          <button className="flex flex-col items-center justify-center w-20 h-16 rounded-lg text-[#adadad] hover:text-white hover:bg-[#1f1f22] transition-colors">
+            <Share2 className="w-7 h-7" />
+            <span className="text-sm font-semibold mt-1">Share</span>
           </button>
 
-          {/* Red LEAVE Panic Button */}
-          <button
-            onClick={handlePanicLeave}
-            className="ml-2 px-3 py-1.5 rounded-md bg-[#e81123] hover:bg-[#b80f1d] active:bg-[#910a14] font-semibold text-xs flex items-center gap-1 shadow transition-colors text-white"
-            title="Leave Meeting (Panic Button!)"
-          >
-            <span className="text-[10px] leading-none">📞</span>
-            Leave
-          </button>
+          {/* Leave Button */}
+          <div className="flex items-center ml-3.5 teams-interactive">
+            <div className="flex items-center h-12 rounded-md bg-[#c43135] hover:bg-[#a82528] transition-colors text-white overflow-hidden font-bold text-[15px] shadow">
+              <button
+                onClick={handlePanicLeave}
+                className="h-full px-5 flex items-center gap-2.5 border-r border-[#9b1c1e] hover:bg-black/10 transition-colors"
+              >
+                <PhoneOff className="w-5 h-5 rotate-[135deg]" />
+                <span>Leave</span>
+              </button>
+              <button className="h-full px-3.5 hover:bg-black/10 transition-colors flex items-center justify-center">
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
-      {/* MAIN CONTAINER */}
-      <div className="flex-1 flex overflow-hidden relative">
-        
-        {/* VIDEO DISPLAY AND USER GRID AREA */}
-        <div className="flex-1 flex flex-col p-4 bg-[#1f1f1f] gap-4 relative overflow-hidden">
-          
-          {viewMode === 'presentation' ? (
-            /* ---------------- PRESENTATION MODE ---------------- */
-            <div className="flex-1 flex flex-col min-h-0 gap-4">
-              {/* Presentation Main Window (Transparent overlay for YouTube player) */}
-              <div className="flex-1 bg-[#151419] rounded-lg border border-[#2d2c33] flex flex-col relative overflow-hidden">
-                {/* Presenter Name Banner */}
-                <div className="teams-interactive absolute top-3 left-3 bg-[#111014]/80 px-2 py-1 rounded text-xs text-[#adadad] font-medium z-10 select-none">
-                  📌 External Presenter is sharing screen
-                </div>
-                
-                {/* Transparent Anchor Target for YouTube Video positioning */}
-                <div
-                  ref={placeholderRef}
-                  id="teams-video-placeholder"
-                  className="w-full h-full bg-transparent border-0 opacity-100 flex items-center justify-center"
+      {/* MAIN MEETING ROOM BODY */}
+      <div className="flex-1 flex flex-row min-h-0 overflow-hidden bg-[#111014]">
+        {/* CALL WORKSPACE BODY */}
+        <div className="flex-1 flex min-h-0 relative">
+          {/* CALL STAGE */}
+          <div className="flex-1 flex flex-col p-4 relative min-w-0 bg-[#111014]">
+            <div className="flex-1 bg-[#1b1a1f] rounded-xl flex items-center justify-center relative overflow-hidden shadow-inner border border-[#2f2f35]">
+              {viewMode === 'presentation' ? (
+                <>
+                  {/* Transparent Anchor Target for YouTube Video positioning */}
+                  <div
+                    ref={placeholderRef}
+                    id="teams-video-placeholder"
+                    className={`w-full h-full bg-black transition-opacity duration-300 ${isCameraOn ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  />
+
+                  {/* Avatar shown when camera is off - SWAPPED to User NK */}
+                  {!isCameraOn && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[#1b1a1f] select-none">
+                      <div 
+                        className="w-36 h-36 rounded-full flex items-center justify-center text-5xl font-bold shadow-2xl transition-all duration-300 transform scale-100 hover:scale-105"
+                        style={{ backgroundColor: '#f5d6c6', color: '#5a3d31' }}
+                      >
+                        {myProfileInitials}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* User name tag (bottom left) - pointer-events-none to click-through */}
+                  <div className="absolute bottom-4 left-4 bg-[#111014]/75 backdrop-blur-md px-3.5 py-1.75 rounded-lg text-sm font-semibold text-white flex items-center gap-2 select-none border border-[#ffffff]/10 z-10 pointer-events-none">
+                    <span className="truncate max-w-[180px]">{myProfileName}</span>
+                    <MicOff className="w-4 h-4 text-[#adadad]" />
+                  </div>
+
+                  {/* Dynamic Participant Cards strip (bottom right) - pointer-events-none to pass through clicks to YT player */}
+                  <div className="absolute bottom-4 right-4 flex gap-3 items-center z-20 pointer-events-none select-none max-w-[calc(100%-220px)] overflow-x-auto scrollbar-none">
+                    {/* Boss Card */}
+                    <div className={`participant-card participant-card-presentation ${speakerStates[colleagueName] ? 'speaking' : ''}`}>
+                      <div className="flex flex-col items-center justify-center w-full h-full relative bg-[#1b1a1f] select-none">
+                        <div 
+                          className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-md"
+                          style={{ backgroundColor: '#ebd3e8', color: '#54304d' }}
+                        >
+                          {colleagueInitials}
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-[#111014]/80 px-2 py-0.5 rounded text-xs text-white flex items-center gap-1">
+                          <span className="truncate max-w-[100px]">{colleagueName}</span>
+                          {speakerStates[colleagueName] ? (
+                            <div className="flex items-end h-2 gap-0.5 px-0.5">
+                              <span className="w-1 h-2 bg-[#4caf50] animate-pulse" />
+                              <span className="w-1 h-3 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.2s' }} />
+                              <span className="w-1 h-1.5 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.4s' }} />
+                            </div>
+                          ) : (
+                            <MicOff className="w-4 h-4 text-[#adadad]" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Extra Participants Cards */}
+                    {extraParticipants.map(p => (
+                      <div key={p.id} className={`participant-card participant-card-presentation ${speakerStates[p.name] ? 'speaking' : ''}`}>
+                        <div className="flex flex-col items-center justify-center w-full h-full relative bg-[#1b1a1f] select-none">
+                          <div 
+                            className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-md"
+                            style={{ backgroundColor: p.color?.bg || '#ebd3e8', color: p.color?.text || '#54304d' }}
+                          >
+                            {p.initials}
+                          </div>
+                          <div className="absolute bottom-2 left-2 bg-[#111014]/80 px-2 py-0.5 rounded text-xs text-white flex items-center gap-1">
+                            <span className="truncate max-w-[100px]">{p.name}</span>
+                            {speakerStates[p.name] ? (
+                              <div className="flex items-end h-2 gap-0.5 px-0.5">
+                                <span className="w-1 h-2 bg-[#4caf50] animate-pulse" />
+                                <span className="w-1 h-3 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.2s' }} />
+                                <span className="w-1 h-1.5 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.4s' }} />
+                              </div>
+                            ) : (
+                              <MicOff className="w-4 h-4 text-[#adadad]" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Me (NK) self-preview Card at the end */}
+                    <div className="participant-card participant-card-presentation">
+                      <div className="flex flex-col items-center justify-center w-full h-full relative bg-[#1b1a1f] select-none">
+                        <div 
+                          className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-md"
+                          style={{ backgroundColor: '#f5d6c6', color: '#5a3d31' }}
+                        >
+                          {myProfileInitials}
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-[#111014]/80 px-2 py-0.5 rounded text-xs text-white flex items-center gap-1">
+                          <span className="truncate max-w-[100px]">{myProfileName} (Me)</span>
+                          <MicOff className="w-4 h-4 text-[#adadad]" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Gallery Grid View with dynamic avatar sizing */
+                (() => {
+                  const totalCount = 2 + extraParticipants.length;
+                  const avatarSizeClass = totalCount <= 2 ? 'w-36 h-36 text-6xl' : totalCount <= 4 ? 'w-24 h-24 text-4xl' : 'w-20 h-20 text-3xl';
+                  return (
+                    <div className={`w-full h-full p-4 grid gap-3 pointer-events-none select-none ${
+                      totalCount <= 2 ? 'grid-cols-2 grid-rows-1' :
+                      totalCount <= 4 ? 'grid-cols-2 grid-rows-2' :
+                      'grid-cols-3'
+                    }`}>
+                      {/* Boss Card (housing the video stream/presentation if camera is on) */}
+                      <div className={`bg-[#1b1a1f] rounded-xl overflow-hidden border relative flex items-center justify-center shadow-lg transition-all duration-300 ${
+                        speakerStates[colleagueName] ? 'border-[#7f85f5] ring-2 ring-[#7f85f5]' : 'border-[#484649]/60'
+                      }`}>
+                        <div
+                          ref={placeholderRef}
+                          id="teams-video-placeholder"
+                          className={`absolute inset-0 bg-black transition-opacity duration-300 ${isCameraOn ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        />
+                        {!isCameraOn && (
+                          <div 
+                            className={`rounded-full flex items-center justify-center font-bold shadow-md transition-all duration-300 ${avatarSizeClass}`}
+                            style={{ backgroundColor: '#ebd3e8', color: '#54304d' }}
+                          >
+                            {colleagueInitials}
+                          </div>
+                        )}
+                        <div className="absolute bottom-3 left-3 bg-[#111014]/85 px-2.5 py-1 rounded text-sm text-white flex items-center gap-1.5 z-10">
+                          <span className="truncate max-w-[120px]">{colleagueName}</span>
+                          {speakerStates[colleagueName] ? (
+                            <div className="flex items-end h-2.5 gap-0.5">
+                              <span className="w-1 h-2.5 bg-[#4caf50] animate-pulse" />
+                              <span className="w-1 h-3.5 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.2s' }} />
+                              <span className="w-1 h-2 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.4s' }} />
+                            </div>
+                          ) : (
+                            <MicOff className="w-4 h-4 text-[#adadad]" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Me Card (NK) */}
+                      <div className="bg-[#1b1a1f] rounded-xl overflow-hidden border border-[#484649]/60 relative flex items-center justify-center shadow-lg">
+                        <div 
+                          className={`rounded-full flex items-center justify-center font-bold shadow-md transition-all duration-300 ${avatarSizeClass}`}
+                          style={{ backgroundColor: '#f5d6c6', color: '#5a3d31' }}
+                        >
+                          {myProfileInitials}
+                        </div>
+                        <div className="absolute bottom-3 left-3 bg-[#111014]/85 px-2.5 py-1 rounded text-sm text-white flex items-center gap-1.5 z-10">
+                          <span className="truncate max-w-[120px]">{myProfileName} (Me)</span>
+                          <MicOff className="w-4 h-4 text-[#adadad]" />
+                        </div>
+                      </div>
+
+                      {/* Extra Participants Cards */}
+                      {extraParticipants.map(p => (
+                        <div key={p.id} className={`bg-[#1b1a1f] rounded-xl overflow-hidden border relative flex items-center justify-center shadow-lg transition-all duration-300 ${
+                          speakerStates[p.name] ? 'border-[#7f85f5] ring-2 ring-[#7f85f5]' : 'border-[#484649]/60'
+                        }`}>
+                          <div 
+                            className={`rounded-full flex items-center justify-center font-bold shadow-md transition-all duration-300 ${avatarSizeClass}`}
+                            style={{ backgroundColor: p.color?.bg || '#ebd3e8', color: p.color?.text || '#54304d' }}
+                          >
+                            {p.initials}
+                          </div>
+                          <div className="absolute bottom-3 left-3 bg-[#111014]/85 px-2.5 py-1 rounded text-sm text-white flex items-center gap-1.5 z-10">
+                            <span className="truncate max-w-[120px]">{p.name}</span>
+                            {speakerStates[p.name] ? (
+                              <div className="flex items-end h-2.5 gap-0.5">
+                                <span className="w-1 h-2.5 bg-[#4caf50] animate-pulse" />
+                                <span className="w-1 h-3.5 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.2s' }} />
+                                <span className="w-1 h-2 bg-[#4caf50] animate-pulse" style={{ animationDelay: '0.4s' }} />
+                              </div>
+                            ) : (
+                              <MicOff className="w-4 h-4 text-[#adadad]" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          </div>
+
+          {/* SIDEBAR PANELS */}
+          {activeSidebar === 'participants' && (
+            <aside className="teams-interactive w-[320px] bg-[#201f24] border-l border-[#2d2c33] flex flex-col select-none z-[6000] shrink-0">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-[#2d2c33]">
+                <h2 className="text-base font-semibold text-[#f3f4f6]">Participants</h2>
+                <button
+                  onClick={() => setActiveSidebar(null)}
+                  className="text-[#adadad] hover:text-white p-1 rounded hover:bg-[#3d3b42] transition-colors"
                 >
-                  {/* Invisible placeholder content. Light DOM video overlays this area */}
-                </div>
+                  ✕
+                </button>
               </div>
 
-              {/* Bottom Participant Grid Strip */}
-              <div className="teams-interactive h-28 flex justify-center gap-2 items-center overflow-x-auto select-none py-1">
-                {/* Card 1: You */}
-                <div className="h-full w-40 rounded-lg bg-[#29282e] border border-[#3d3b42] flex flex-col items-center justify-center p-2 relative shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#6264a7] to-[#4f46e5] flex items-center justify-center text-sm font-semibold text-white shadow">
-                    NK
-                  </div>
-                  <span className="text-[11px] font-medium mt-1 text-[#f3f4f6]">You (Nitin Kumar)</span>
-                  {isHandRaised && (
-                    <span className="absolute top-1.5 right-1.5 text-xs text-purple-400">✋</span>
-                  )}
-                </div>
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* Share invite */}
+                <button className="w-full py-2.5 px-3.5 rounded-md border border-[#484649] text-[#f3f4f6] hover:bg-[#2d2c33] transition-colors text-sm font-semibold flex items-center justify-center gap-2">
+                  <Share2 className="w-4.5 h-4.5 text-[#adadad]" />
+                  <span>Share invite</span>
+                </button>
 
-                {/* Other Coworker Cards */}
-                {COWORKERS.slice(0, 4).map((cw) => {
-                  const isSpeaking = speakerStates[cw.name];
-                  return (
-                    <div
-                      key={cw.name}
-                      className={`h-full w-40 rounded-lg bg-[#29282e] flex flex-col items-center justify-center p-2 relative shrink-0 transition-all ${
-                        isSpeaking ? 'ring-2 ring-[#5b5fc7] shadow-[0_0_12px_rgba(91,95,199,0.3)]' : 'border border-[#3d3b42]'
-                      }`}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shadow"
-                        style={{ background: cw.bg }}
+                {/* Add participant input form */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleAddParticipant(newParticipantInput);
+                    setNewParticipantInput('');
+                  }}
+                  className="relative flex items-center my-2"
+                >
+                  <input
+                    type="text"
+                    value={newParticipantInput}
+                    onInput={(e) => setNewParticipantInput(e.target.value)}
+                    placeholder="Invite someone or start typing..."
+                    className="w-full pl-3 pr-8 py-2 text-sm bg-[#1f1f22] border border-[#484649] focus:border-[#7f85f5] rounded-md text-[#f3f4f6] placeholder-[#adadad] outline-none transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-2 text-[#adadad] hover:text-white transition-colors"
+                  >
+                    <UserPlus className="w-4.5 h-4.5" />
+                  </button>
+                </form>
+
+                {/* Participant list */}
+                <div className="space-y-2 mt-4">
+                  <div className="flex items-center justify-between text-xs font-bold text-[#adadad] uppercase tracking-wider">
+                    <span>In this meeting ({2 + extraParticipants.length})</span>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+
+                  {/* Colleague (Boss) - Listed First */}
+                  <div className="flex items-center justify-between py-1.5 hover:bg-[#2d2c33]/40 px-1 rounded-md transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                        style={{ backgroundColor: '#ebd3e8', color: '#54304d' }}
                       >
-                        {cw.initials}
+                        {colleagueInitials}
                       </div>
-                      <span className="text-[11px] font-medium mt-1 text-[#f3f4f6]">{cw.name}</span>
-                      
-                      {/* Speaker indicator inside card */}
-                      {isSpeaking && (
-                        <div className="absolute top-1.5 right-1.5 flex items-end h-3">
+                      <div className="leading-tight">
+                        <div className="text-sm font-semibold text-white">{colleagueName}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {speakerStates[colleagueName] ? (
+                        <div className="flex items-end h-3 gap-0.5">
                           <span className="voice-bar voice-bar-1"></span>
                           <span className="voice-bar voice-bar-2"></span>
                           <span className="voice-bar voice-bar-3"></span>
                         </div>
+                      ) : (
+                        <MicOff className="w-3.5 h-3.5 text-[#adadad]" />
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            /* ---------------- GALLERY MODE (3x3 GRID) ---------------- */
-            <div className="flex-1 grid grid-cols-3 grid-rows-3 gap-3">
-              
-              {/* Row 1, Col 1: YouTube Video slot */}
-              <div className="rounded-lg bg-[#151419] border border-[#2d2c33] relative flex flex-col items-center justify-center overflow-hidden">
-                <div className="teams-interactive absolute top-2 left-2 bg-[#111014]/80 px-2 py-0.5 rounded text-[10px] text-[#adadad] font-medium z-10">
-                  🎥 Main Stream
-                </div>
-                
-                {/* Transparency Overlay Anchor for Video */}
-                <div
-                  ref={placeholderRef}
-                  id="teams-video-placeholder"
-                  className="w-full h-full bg-transparent border-0 opacity-100"
-                >
-                  {/* Invisible placeholder for grid mode */}
-                </div>
-              </div>
-
-              {/* Row 1, Col 2: Card: You */}
-              <div className="rounded-lg bg-[#29282e] border border-[#3d3b42] relative flex flex-col items-center justify-center p-3">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#6264a7] to-[#4f46e5] flex items-center justify-center text-xl font-bold text-white shadow-lg">
-                  NK
-                </div>
-                <div className="absolute bottom-2 left-3 text-xs font-semibold text-[#f3f4f6]">
-                  You (Nitin Kumar)
-                </div>
-                {isHandRaised && (
-                  <span className="absolute top-2 right-2 text-sm text-purple-400">✋</span>
-                )}
-              </div>
-
-              {/* Coworker Cards (7 Cards remaining to make it 9 slots) */}
-              {COWORKERS.slice(0, 7).map((cw) => {
-                const isSpeaking = speakerStates[cw.name];
-                return (
-                  <div
-                    key={cw.name}
-                    className={`rounded-lg bg-[#29282e] flex flex-col items-center justify-center p-3 relative transition-all ${
-                      isSpeaking ? 'ring-2 ring-[#5b5fc7] shadow-[0_0_12px_rgba(91,95,199,0.3)]' : 'border border-[#3d3b42]'
-                    }`}
-                  >
-                    <div
-                      className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold text-white shadow-lg"
-                      style={{ background: cw.bg }}
-                    >
-                      {cw.initials}
-                    </div>
-                    <div className="absolute bottom-2 left-3 text-xs font-semibold text-[#f3f4f6]">
-                      {cw.name}
-                    </div>
-
-                    {isSpeaking && (
-                      <div className="absolute top-2 right-2 flex items-end h-3.5">
-                        <span className="voice-bar voice-bar-1"></span>
-                        <span className="voice-bar voice-bar-2"></span>
-                        <span className="voice-bar voice-bar-3"></span>
-                      </div>
-                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
-        {/* SIDEBAR PANELS */}
-        {activeSidebar && (
-          <aside className="teams-interactive w-[320px] bg-[#201f24] border-l border-[#2d2c33] flex flex-col select-none z-[6000] shrink-0">
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-3 border-b border-[#2d2c33]">
-              <h2 className="text-sm font-semibold text-[#f3f4f6]">
-                {activeSidebar === 'chat' ? 'Meeting chat' : 'People'}
-              </h2>
-              <button
-                onClick={() => setActiveSidebar(null)}
-                className="text-[#adadad] hover:text-white p-1 rounded hover:bg-[#3d3b42]"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Sidebar Content */}
-            <div className="flex-1 overflow-y-auto">
-              {activeSidebar === 'chat' ? (
-                /* ---------------- CHAT LOG ---------------- */
-                <div className="p-3 space-y-4">
-                  {chatMessages.map(msg => (
-                    <div key={msg.id} className="flex gap-2">
-                      {/* Avatar initials badge */}
-                      <div
-                        className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white shadow-sm mt-0.5"
-                        style={{
-                          background: msg.isMe 
-                            ? 'linear-gradient(135deg, #6264a7, #4f46e5)' 
-                            : (COWORKERS.find(c => c.name === msg.sender)?.bg || 'linear-gradient(135deg, #888, #444)')
-                        }}
-                      >
-                        {msg.initials}
+                  {/* Extra Participants */}
+                  {extraParticipants.map(p => (
+                    <div key={p.id} className="flex items-center justify-between py-1.5 hover:bg-[#2d2c33]/40 px-1 rounded-md transition-colors group/member">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white shadow-sm"
+                          style={{ backgroundColor: p.color?.bg || '#ebd3e8', color: p.color?.text || '#54304d' }}
+                        >
+                          {p.initials}
+                        </div>
+                        <div className="leading-tight">
+                          <div className="text-sm font-semibold text-white">{p.name}</div>
+                        </div>
                       </div>
-                      
-                      {/* Message Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-[11px] font-semibold text-[#f3f4f6] truncate">{msg.sender}</span>
-                          <span className="text-[9px] text-[#adadad]">{msg.time}</span>
-                        </div>
-                        <div className={`mt-1 p-2 rounded-lg text-xs leading-normal break-words ${
-                          msg.isMe 
-                            ? 'bg-[#3b3a3f] text-[#f3f4f6] border border-[#4d4c52]' 
-                            : 'bg-[#29282e] text-[#e3e4e6] border border-[#37353b]'
-                        }`}>
-                          {msg.message}
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleRemoveParticipant(p.id)}
+                          className="text-[#adadad] hover:text-rose-400 p-1 rounded hover:bg-[#3d3b42] opacity-80 md:opacity-0 md:group-hover/member:opacity-100 transition-opacity"
+                          title="Remove participant"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        <MicOff className="w-3.5 h-3.5 text-[#adadad]" />
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : (
-                /* ---------------- PARTICIPANTS LIST ---------------- */
-                <div className="p-3 space-y-3">
-                  <div className="text-[10px] font-bold text-[#adadad] tracking-wider uppercase mb-1">
-                    In this meeting ({1 + COWORKERS.length})
-                  </div>
 
-                  {/* Organizer: Nitin Kumar */}
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#6264a7] to-[#4f46e5] flex items-center justify-center text-xs font-semibold text-white">
-                        NK
+                  {/* Me (N K) - Listed Last as Organiser */}
+                  <div className="flex items-center justify-between py-1.5 hover:bg-[#2d2c33]/40 px-1 rounded-md transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm"
+                        style={{ backgroundColor: '#f5d6c6', color: '#5a3d31' }}
+                      >
+                        {myProfileInitials}
                       </div>
                       <div className="leading-tight">
-                        <div className="text-xs font-semibold text-white">You (Nitin Kumar)</div>
-                        <div className="text-[10px] text-[#adadad]">Organizer</div>
+                        <div className="text-sm font-semibold text-white">{myProfileName}</div>
+                        <div className="text-xs text-[#adadad]">Organiser</div>
                       </div>
                     </div>
-                    {isHandRaised && <span className="text-xs">✋</span>}
+                    <div className="flex items-center gap-2">
+                      <MicOff className="w-3.5 h-3.5 text-[#adadad]" />
+                    </div>
                   </div>
-
-                  {/* Other Attendees */}
-                  {COWORKERS.map(cw => {
-                    const isSpeaking = speakerStates[cw.name];
-                    return (
-                      <div key={cw.name} className="flex items-center justify-between py-1">
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-white"
-                            style={{ background: cw.bg }}
-                          >
-                            {cw.initials}
-                          </div>
-                          <div className="leading-tight">
-                            <div className="text-xs font-medium text-white">{cw.name}</div>
-                            <div className="text-[10px] text-[#adadad]">{cw.role}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          {isSpeaking && (
-                            <div className="flex items-end h-3">
-                              <span className="voice-bar voice-bar-1"></span>
-                              <span className="voice-bar voice-bar-2"></span>
-                              <span className="voice-bar voice-bar-3"></span>
-                            </div>
-                          )}
-                          <span className="text-xs opacity-50">🎙️</span>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
-              )}
-            </div>
+              </div>
+            </aside>
+          )}
 
-            {/* Chat Send Input Box */}
-            {activeSidebar === 'chat' && (
-              <form onSubmit={handleSendChatMessage} className="p-3 border-t border-[#2d2c33] flex items-center gap-2">
-                <input
-                  type="text"
-                  value={chatInputValue}
-                  onInput={(e) => setChatInputValue(e.target.value)}
-                  placeholder="Type a message..."
-                  className="flex-1 bg-[#2d2c33] text-xs px-3 py-2 rounded-md border border-[#3d3b42] text-white focus:outline-none focus:border-[#5b5fc7] placeholder-[#adadad]"
-                />
+          {activeSidebar === 'chat' && (
+            <aside className="teams-interactive w-[320px] bg-[#201f24] border-l border-[#2d2c33] flex flex-col select-none z-[6000] shrink-0">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-[#2d2c33]">
+                <h2 className="text-base font-semibold text-[#f3f4f6]">Meeting chat</h2>
                 <button
-                  type="submit"
-                  className="p-2 bg-[#5b5fc7] hover:bg-[#484ab2] text-white rounded-md text-xs font-semibold shrink-0"
+                  onClick={() => setActiveSidebar(null)}
+                  className="text-[#adadad] hover:text-white p-1 rounded hover:bg-[#3d3b42] transition-colors"
                 >
-                  Send
+                  ✕
                 </button>
-              </form>
-            )}
-          </aside>
-        )}
+              </div>
 
+              {/* Message logs */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* System invitation message */}
+                <div className="flex items-start gap-2 text-sm text-[#adadad] select-none py-1 border-b border-[#2d2c33]/30 pb-3">
+                  <CalendarPlus className="w-4.5 h-4.5 shrink-0 text-[#adadad] mt-0.5" />
+                  <span>{colleagueName} (Guest) was invited to the meeting.</span>
+                </div>
+
+                {chatMessages.map(msg => (
+                  <div key={msg.id} className="flex gap-2.5">
+                    <div
+                      className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold shadow-sm"
+                      style={{
+                        backgroundColor: msg.isMe ? '#f5d6c6' : '#ebd3e8',
+                        color: msg.isMe ? '#5a3d31' : '#54304d'
+                      }}
+                    >
+                      {msg.isMe ? myProfileInitials : colleagueInitials}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xs font-semibold text-[#f3f4f6] truncate">
+                          {msg.isMe ? myProfileName : colleagueName}
+                        </span>
+                        <span className="text-[10px] text-[#adadad]">{msg.time}</span>
+                      </div>
+                      <div className="mt-1 p-2 rounded-lg text-[13px] leading-normal break-words bg-[#2d2c33] text-[#e3e4e6] border border-[#3d3b42]/70">
+                        {msg.message}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Custom Input box nested in border with icons in bottom-right */}
+              <form onSubmit={handleSendChatMessage} className="p-3 border-t border-[#2d2c33]">
+                <div className="relative border border-[#2d2c33] focus-within:border-[#5b5fc7] rounded bg-[#252429] flex flex-col p-2.5">
+                  <textarea
+                    value={chatInputValue}
+                    onInput={(e) => setChatInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendChatMessage(e);
+                      }
+                    }}
+                    placeholder="Type a message"
+                    rows={2}
+                    className="bg-transparent text-[13px] text-white placeholder-[#adadad] resize-none outline-none w-full pr-12 pb-2"
+                  />
+                  <div className="flex items-center justify-end gap-1.5 self-end mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setChatInputValue(prev => prev + '😊')}
+                      className="p-1 hover:bg-[#3d3b42] rounded text-[#adadad] hover:text-white transition-colors"
+                      title="Add emoji"
+                    >
+                      <Smile className="w-4.5 h-4.5" />
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!chatInputValue.trim()}
+                      className={`p-1 rounded transition-colors ${chatInputValue.trim() ? 'text-[#7f85f5] hover:bg-[#3d3b42]' : 'text-[#484649] cursor-not-allowed'}`}
+                      title="Send message"
+                    >
+                      <Send className="w-4.5 h-4.5" />
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </aside>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -858,7 +999,6 @@ function MeetingRoom() {
 
 // Extension entry logic
 const initStealthExtension = () => {
-  // Prevent duplicate mounts
   if (document.getElementById('teams-stealth-root')) return;
 
   const host = document.createElement('div');
@@ -867,18 +1007,15 @@ const initStealthExtension = () => {
 
   const shadowRoot = host.attachShadow({ mode: 'open' });
 
-  // Attach content styling compiled by Vite & Tailwind
   const styleLink = document.createElement('link');
   styleLink.rel = 'stylesheet';
   const isDev = typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.getURL;
   styleLink.href = isDev ? '/src/content.css' : chrome.runtime.getURL('content.css');
   shadowRoot.appendChild(styleLink);
 
-  // Mount Preact app inside Shadow DOM
   render(<MeetingRoom />, shadowRoot);
 };
 
-// Wait for document to be fully loaded
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
   initStealthExtension();
 } else {

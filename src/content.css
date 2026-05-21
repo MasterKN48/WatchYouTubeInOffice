@@ -12,34 +12,62 @@ html.teams-stealth-active body {
   width: 100vw !important;
 }
 
-/* Hide standard YouTube layouts */
+/* Hide standard YouTube layouts, sidebar, guides, panels, and comments */
 html.teams-stealth-active #masthead-container,
-html.teams-stealth-active #columns,
 html.teams-stealth-active #secondary,
 html.teams-stealth-active ytd-merch-shelf-renderer,
-html.teams-stealth-active #contentContainer,
 html.teams-stealth-active ytd-banner-renderer,
 html.teams-stealth-active #chat,
-html.teams-stealth-active #ticket-shelf {
+html.teams-stealth-active #ticket-shelf,
+html.teams-stealth-active ytd-mini-guide-renderer,
+html.teams-stealth-active ytd-guide-renderer,
+html.teams-stealth-active #guide-button,
+html.teams-stealth-active app-drawer,
+html.teams-stealth-active tp-yt-app-drawer,
+html.teams-stealth-active ytd-miniplayer,
+html.teams-stealth-active ytd-engagement-panel-section-list-renderer,
+html.teams-stealth-active #panels,
+html.teams-stealth-active yt-playlist-manager {
   display: none !important;
 }
 
-/* Hide all sibling elements of the watch page player to avoid leaks */
-html.teams-stealth-active ytd-watch-flexy #player-container-outer,
-html.teams-stealth-active ytd-watch-flexy #player-container-inner {
-  padding: 0 !important;
-  margin: 0 !important;
+/* Hide all other primary page contents (like description, title, comments) except player */
+html.teams-stealth-active #primary-inner > :not(#player):not(#player-theater-container):not(#ytd-player) {
+  display: none !important;
 }
 
-/* Override YouTube Player positioning */
-html.teams-stealth-active #movie_player,
-html.teams-stealth-active ytd-watch-flexy #player-container {
+/* Reset layout/backgrounds for ancestors of movie_player to allow z-index/fixed positioning to work */
+html.teams-stealth-active ytd-app,
+html.teams-stealth-active #content,
+html.teams-stealth-active ytd-page-manager,
+html.teams-stealth-active ytd-watch-flexy,
+html.teams-stealth-active #columns,
+html.teams-stealth-active #primary,
+html.teams-stealth-active #primary-inner,
+html.teams-stealth-active #player,
+html.teams-stealth-active #player-container-outer,
+html.teams-stealth-active #player-container-inner,
+html.teams-stealth-active #player-container,
+html.teams-stealth-active #ytd-player {
+  transform: none !important;
+  filter: none !important;
+  perspective: none !important;
+  overflow: visible !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Override YouTube Player positioning and size to fill the stage placeholder precisely */
+html.teams-stealth-active #movie_player {
   position: fixed !important;
   z-index: 1000 !important; /* Place video between background and Teams UI overlay */
   pointer-events: auto !important;
-  transition: all 0.15s ease-out !important;
   border-radius: 4px !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Ensure the player doesn't render dark overlays that break the illusion */
@@ -71,7 +99,7 @@ html.teams-stealth-active #movie_player.ytp-fullscreen {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #1f1f1f;
+  background-color: transparent !important;
   color: #f3f4f6;
   position: relative;
   overflow: hidden;
@@ -144,4 +172,44 @@ html.teams-stealth-active #movie_player.ytp-fullscreen {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #4f4f4f;
+}
+
+/* Participant list items delete button visibility on hover */
+.group\/member:hover button {
+  opacity: 1 !important;
+}
+
+/* Participant Cards styling for stages */
+.participant-card {
+  background-color: rgba(27, 26, 31, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(72, 70, 73, 0.6);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.participant-card.speaking {
+  border-color: #7f85f5;
+  box-shadow: 0 0 0 2px #7f85f5;
+}
+
+.participant-card-presentation {
+  width: 160px; /* 10rem */
+  height: 104px; /* 6.5rem */
+}
+
+/* Hide scrollbar utilities */
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }

@@ -26,7 +26,7 @@
       "css": [
         "content.css"
       ],
-      "run_at": "document_end"
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
