@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* -------------------------------------------------------------
+   YouTube Page Overrides (Light DOM)
+   These apply to the host page to hide original elements.
+------------------------------------------------------------- */
+html.teams-stealth-active,
+html.teams-stealth-active body {
+  background-color: #1f1f1f !important;
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100vw !important;
+}
+
+/* Hide standard YouTube layouts */
+html.teams-stealth-active #masthead-container,
+html.teams-stealth-active #columns,
+html.teams-stealth-active #secondary,
+html.teams-stealth-active ytd-merch-shelf-renderer,
+html.teams-stealth-active #contentContainer,
+html.teams-stealth-active ytd-banner-renderer,
+html.teams-stealth-active #chat,
+html.teams-stealth-active #ticket-shelf {
+  display: none !important;
+}
+
+/* Hide all sibling elements of the watch page player to avoid leaks */
+html.teams-stealth-active ytd-watch-flexy #player-container-outer,
+html.teams-stealth-active ytd-watch-flexy #player-container-inner {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Override YouTube Player positioning */
+html.teams-stealth-active #movie_player,
+html.teams-stealth-active ytd-watch-flexy #player-container {
+  position: fixed !important;
+  z-index: 1000 !important; /* Place video between background and Teams UI overlay */
+  pointer-events: auto !important;
+  transition: all 0.15s ease-out !important;
+  border-radius: 4px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+
+/* Ensure the player doesn't render dark overlays that break the illusion */
+html.teams-stealth-active #movie_player.ytp-fullscreen {
+  z-index: 2147483647 !important; /* Restore normal fullscreen mode if clicked */
+}
+
+
+/* -------------------------------------------------------------
+   Shadow DOM / Teams UI Specific Styles
+   These styles are compiled by Tailwind and will be active inside the shadow root.
+------------------------------------------------------------- */
+
+/* Host element styling */
+#teams-stealth-root {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1001 !important; /* Sit on top of the video player, but we use pointer-events: none */
+  pointer-events: none !important;
+  font-family: 'Segoe UI', system-ui, Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.teams-wrapper {
+  pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1f1f1f;
+  color: #f3f4f6;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Enable pointer events selectively on the UI elements */
+.teams-interactive {
+  pointer-events: auto !important;
+}
+
+/* Keyframes for reactions emoji animation */
+@keyframes floatReaction {
+  0% {
+    transform: translateY(100vh) scale(0.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(90vh) scale(1);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(10vh) scale(0.8) translateX(var(--drift, 0px));
+    opacity: 0;
+  }
+}
+
+.reaction-emoji {
+  position: absolute;
+  bottom: 0;
+  z-index: 99999;
+  font-size: 32px;
+  pointer-events: none;
+  animation: floatReaction 3s cubic-bezier(0.08, 0.82, 0.17, 1) forwards;
+}
+
+/* Animations for speaking waveforms */
+@keyframes voicePulse {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.voice-bar {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  background-color: #4caf50;
+  margin: 0 1px;
+  transform-origin: bottom;
+  animation: voicePulse 1s ease-in-out infinite;
+}
+
+.voice-bar-1 { animation-delay: 0.1s; }
+.voice-bar-2 { animation-delay: 0.3s; }
+.voice-bar-3 { animation-delay: 0.5s; }
+
+/* Custom Scrollbars to match Teams UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #3c3c3c;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4f4f4f;
+}

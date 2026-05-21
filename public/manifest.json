@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Watch YouTube In Office (MS Teams Stealth)",
+  "version": "1.0.0",
+  "description": "Transforms YouTube into an MS Teams meeting layout so you can watch videos stealthily in the office.",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "favicon.svg"
+  },
+  "icons": {
+    "16": "favicon.svg",
+    "48": "favicon.svg",
+    "128": "favicon.svg"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/watch*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content.css",
+        "assets/*"
+      ],
+      "matches": [
+        "*://*.youtube.com/*"
+      ]
+    }
+  ]
+}
